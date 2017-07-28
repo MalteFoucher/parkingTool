@@ -4,13 +4,21 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
     <title>Inspektor Parkingson</title>
+	
+	
+	<!-- AUF ANDEREN RECHNERN kracht was mit den Imports (meine Annahme) wahrscheinlich, weil die vorliegenden Scripts auf die Scripts	
+		zugreifen wollen, die geladen werden, die aber noch nicht da sind??? -->
 
 	<!--link rel="stylesheet" href="css\bootstrap-theme.css"-->
-    
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <!--  Zeug von und für PrimeUI-->
-	<script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.js"></script>
-	<script type="text/javascript" src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+    <link rel="stylesheet" href="css\try2.css">
+	<!--link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"-->
+
+	<!--script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script-->
+    <!--  Zeug von und für PrimeUI>
+		<script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.js"></script-->
+		<script type="text/javascript" src="js/jquery-1.9.1.js"></script>
+	<!--script type="text/javascript" src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script-->
+	<script type="text/javascript" src="js/jquery-ui.js"></script>
 	<!--script type="text/javascript" src="primeui-1.0/primeui-all.min.js"></script-->
 	
 	<!--link href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" rel="stylesheet"-->
@@ -18,20 +26,19 @@
 	<link href="primeui-1.0/primeui-all.css" rel="stylesheet"-->
 	<!--link href="primeui-1.0/primeui.css" rel="stylesheet"-->
 	
-	<!-- Imports für PrimeUI-->
-    <link href="primeuithemes/bluesky/theme.css" rel="stylesheet">
+	<!-- Imports für PrimeUI>
+    <link href="primeuithemes/bluesky/theme.css" rel="stylesheet"-->
     
-	<link rel="stylesheet" type="text/css" href="font-awesome.min.css" />
-    <link rel="stylesheet" href="jquery-ui.css" />
-    <link rel="stylesheet" href="primeui.min.css" /> <!--das ding ist für puigrowl nötig-->
+	<link rel="stylesheet" type="text/css" href="css\font-awesome.min.css" />
+    <link rel="stylesheet" href="css\jquery-ui.css" />
+    <link rel="stylesheet" href="css\primeui.min.css" /> <!--das ding ist für puigrowl nötig-->
     <!--script type="text/javascript" src="%PATH%/jquery.js"></script-->
     <!--script type="text/javascript" src="jquery-ui-1.12.1/jquery-ui.js"></script-->
-    <script type="text/javascript" src="primeui.min.js"></script>
+    <script type="text/javascript" src="js\primeui.min.js"></script>
 	
 	<!--link href="sh.css" rel="stylesheet"-->
-	<link href="all.css" rel="stylesheet">
-	<link rel="stylesheet" href="try2.css">
-	
+	<link href="css\all.css" rel="stylesheet">
+
     <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase-database.js"></script>
@@ -39,15 +46,15 @@
     <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
     <script src="https://www.gstatic.com/firebasejs/4.1.3/firebase.js"></script>
 	
-	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
-    <script src="angularComments.js"></script>
-	
-	
-    <script src="moment.min.js"></script>
+	  <!--script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script-->
+	  <script src="js/angular.min.js"></script>
+    
+	<script src="js/moment.min.js"></script>
 
-	<script src="kalender.js"></script>
-	<script src="admin.js"></script>
-	<script src="buchungen.js"></script>
+	<script src="js/angularComments.js"></script>
+	<script src="js/kalender.js"></script>
+	<script src="js/admin.js"></script>
+	<script src="js/buchungen.js"></script>
 	
 	
 
@@ -133,13 +140,11 @@
 
 
 <div name="user2RoleView">
-	<div class="centered-content">
+	<!--div class="centered-content">
 		<h2>User-Verwaltung</h2>
-	</div>	
-
-	<div class="centered-content">    
-		<div id="userTable"></div>
-	</div>	
+	</div-->	
+	<div id="userTable"></div>
+	
 </div>	
 
 
