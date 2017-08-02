@@ -86,11 +86,20 @@ function showBuchungen() {
 				var buchung = buchungenMap[year_keys[i]][buchung_keys[j]];
 				var partner;
 				var checkb;
+				var mailto;
+				var subject = "SuBjeCt";
 				inHTML+="<h3>";
 				
 				if (userId == buchung.vermieter) {
-					inHTML+="Vermietung";
-					partner = "Mieter: "+getEmailToUid(buchung.mieter);
+					
+					if (buchung.mieter =='null') {
+						inHTML+="Freigabe";
+					} else {
+						inHTML += "Vermietung";
+					}
+					partner = "Mieter: ";
+					mailto = getEmailToUid(buchung.mieter);					
+					
 					//Oh leck, wie komm ich denn später im Listener von der Checkbox zum original Datenbank-Eintrag ??? über buchung.refString
 					//Listener an die Checkbox hängen. 
 					checkb = '<input type="checkbox" id="cb_buchung_'+buchung.refString+'" ';
@@ -100,7 +109,8 @@ function showBuchungen() {
 					checkb+='>Zahlung erhalten</input>';
 				} else {
 					inHTML+="Buchung";
-					partner = "Vermieter: "+getEmailToUid(buchung.vermieter);
+					partner = "Vermieter: ";
+					mailto = getEmailToUid(buchung.vermieter);
 					checkb = '<input type="checkbox id="cb_buchung_'+buchung.refString+'" ';
 					if (buchung.bezahlt) {
 						checkb+="checked";
@@ -108,7 +118,14 @@ function showBuchungen() {
 					checkb+='>Bezahlt</input>';
 				}
 				inHTML+=" am "+getDateToKey(jahr, buchung_keys[j])+"</h3> <div>";				
-				inHTML+="<p>"+partner+"</p><p>"+checkb+"</p>";//<p> STORNO ?? </p>"; Storno sollen die Leute im Kalender machen!
+				inHTML+="<p>"+partner;
+				console.log ("Mailto:"+mailto);
+				if (mailto == 'Niemand') {
+					inHTML+=mailto;
+				} else {					
+					inHTML+='<a href="mailto:'+mailto+'?subject='+subject+'" target="_top">'+mailto+'</a>';
+				}
+				inHTML+="</p><p>"+checkb+"</p>";//<p> STORNO ?? </p>"; Storno sollen die Leute im Kalender machen!
 				inHTML+="</div>";
 			}
 			inHTML+="</div>"; 

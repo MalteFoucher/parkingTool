@@ -429,7 +429,7 @@ function onAdminEdit(p,col) {
 		
 		//Vermieter Email: Entweder ist schon ne Buchung an diesem Slot vorhanden, dann nehmen wir diese Infos
 		//oder es ist keine, dann nehmen wir den Vermieter, dem dieser P zugeordnet ist.
-		
+		var buchTag = getExactDateAsMoment(col);
 		var vermieter_email="niemand";
 		var mieter_email =  "niemand";
 		var bezahlt="false";
@@ -476,8 +476,7 @@ function onAdminEdit(p,col) {
 		}
 		vermieterHTML+="</select></p>";
 		mieterHTML+="</select></p>";
-		inHTML+=vermieterHTML;
-		
+		inHTML+=vermieterHTML;		
 		inHTML+=mieterHTML;
 		
 		//inHTML+='<div id="bezahlt_erhalten"/></div>';
@@ -493,7 +492,7 @@ function onAdminEdit(p,col) {
 		}
 		inHTML+='></input>Zahlung vom Vermieter erhalten</p>';
 
-			inHTML+="<button id='deleteFreigabeButton'>Freigabe löschen!</button>";
+		inHTML+="<button id='deleteFreigabeButton'>Freigabe löschen!</button>";
 		document.getElementById("gpui-p").innerHTML = inHTML;
 		
 		$('#bezahlt_erhalten').puiselectbutton({
@@ -526,7 +525,14 @@ function onAdminEdit(p,col) {
 			console.log("Lösche "+refString);
 			firebase.database().ref(refString).remove();				
 			addMessage([{severity: 'info', summary: 'Freigabe gelöscht', detail: 'Die Freigabe '+refString+' wurde gelöscht.'}]);
-			//Soll dann in dem Fall Emails verschickt werden?
+			//Soll dann in dem Fall Emails verschickt werden? Es soll.
+			if (mieter_email != 'niemand') {
+				console.log("Email an Mieter senden: "+mieter_email);
+				var text = "Tut uns leid, aber ihre Buchung des P"+col+" am "+moment(buchTag).format('DD.MM.YYYY') +" wurde vom Administrator storniert.";
+				$.get( "https://us-central1-parkingtool-6cf77.cloudfunctions.net/email?to="+mieter_email+"&subject=Ihre%20Buchung%20wurde%20gelöscht&text="+text, function( data ) {
+					console.log("Email verschickt: "+text);
+				});
+			}
 			$("#generic-puidialog").puidialog('hide');
 		};
 	

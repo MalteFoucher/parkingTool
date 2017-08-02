@@ -9,10 +9,14 @@ var admin=false;
 //var adminEditingMode = false;
 var loginStatus="ausgeloggt";
 
-//"Balancing"-Werte
+//"Balancing"-Werte. Um diese Werte im laufenden Betrieb zu ändern: einfach ne neue Version von kalender.js hosten?
+//	-> dann müsste man neue Mobile-Versionen ausrollen. Also lieber in Firebase in die DB schreiben und bei Programmstart erstmal auslesen.
 var frist_tage=2;
 var frist_stunde=(9.5*60); //Also in Minuten
 var anzahl_parkplaetze=145;
+var direktVergabe=false;	//Auf Vorschlag Frank Wellers kann man diese Option irgendwann freischalten "wenn sich das eingespielt hat".
+
+
 
 //Moment-Objkte 
 var workMoment = new moment();
@@ -97,10 +101,9 @@ var config = {
 
 		function buchungListener(snapshot) {
 			buchungsMap = snapshot.val();
-			console.log("Buchung-Listener : "+ Object.keys(snapshot.val()) );
-			//console.log(userId);
 			
 			if (snapshot.val()!= null) {
+				console.log("Buchung-Listener : "+ Object.keys(snapshot.val()) );
 	
 				var keys=Object.keys(snapshot.val());        
 				var table = document.getElementById("dynamicTable");
@@ -119,7 +122,7 @@ var config = {
 					table.rows[parkId].cells[day].removeEventListener("click", editBuchungClickListener);				
 		
 					//Falls eigene Freigabe:
-					if (parkId==userParkId) {// && mieter!='storno') {
+					if (parkId==userParkId) {
 						table.rows[parkId].cells[day].addEventListener("click", editFreigabeClickListener);
 						//table.rows[parkId].cells[day].innerHTML="editFreigabe-V";
 					}
@@ -142,13 +145,7 @@ var config = {
 						if (mieter == userId) {
 						  id = 'userslot';
 						  table.rows[parkId].cells[day].addEventListener("click", editBuchungClickListener);
-						}
-						//Mieter==Storno gibts doch garnicht mehr
-						/*if (mieter == 'storno') {
-							id = 'blankslot';
-							table.rows[parkId].cells[day].removeEventListener("click", makeFreigabeClickListener);
-
-						}*/						
+						}				
 					}
 					
 					table.rows[parkId].cells[day].id = id;				
@@ -262,7 +259,7 @@ var config = {
 		document.getElementById("gpui-cancel").style.display= "inline";		
 
 		var refString = '/buchungen/'+year+'/KW'+kw+'/';
-		//Prüfen, dass 1 User keine 2 Buchungen an 1 Tag macht.
+		//Prüfen, dass 1 User keine 2 Buchungen an 1 Tag macht. 
 		firebase.database().ref(refString).once('value').then(function (snapshot) {
 			var inHTML = "<h1>Parkplatz buchen</h1>";
 			var kannBuchen=1;
@@ -400,6 +397,7 @@ var config = {
 			//Wenn ein Mieter eingetragen wurde, dessen Email anfragen und DANACH alles anzeigen.
 			//Die Info, welche Email zu welcher Uid gehört, habe ich auch in admin.js geladen, AABER, ich weiß nicht ob das so bleibt!
 			//Wird ja auch jedesmal einiges an traffic verursachen, gerade auf mobile sollet ich lieber die info hier anfragen!
+			
 			document.getElementById("generic-dialog-overlay").style.display="block";
 			$.get( "https://us-central1-parkingtool-6cf77.cloudfunctions.net/getAuthInfo?uid="+mieter+"&key=email", function( data ) {	
 				document.getElementById("generic-dialog-overlay").style.display="none";
@@ -457,9 +455,6 @@ var config = {
 			return;
 		}
 		
-		var inHTML="<h1>Parkplatz freigeben</h1>"+
-			"<p>Sind Sie sicher, dass Sie ihren Parkplatz P"+row+" am "+ getExactDate(col)+" freigeben wollen?</p>";
-		
 		//Prüfen, ob der Freigabe-Trmin zeitlich passt...
 		if ( isInPast (getExactDateAsMoment(col)) ) {
 			addMessage([{severity: 'error', summary: 'Freigabe nicht möglich', detail: 'Der Tag liegt in der Vergangenheit.'}]);
@@ -469,10 +464,29 @@ var config = {
 		if ( moment(getExactDateAsMoment(col)).isSame(moment(),'day') && !isEarlyEnough() ) {
 			//ale rt("Der Parkplatz kann heute nicht mehr freigegeben werden.");
 			addMessage([{severity: 'error', summary: 'Freigabe nicht möglich', detail: 'Sie können Ihren Parkplatz nur bis 9:30 Uhr freigeben.'}]);
-
 			return;
 		}
 		
+		var inHTML="<h1>Parkplatz freigeben</h1>"+
+			"<p>Sind Sie sicher, dass Sie ihren Parkplatz P"+row+" am "+ getExactDate(col)+" freigeben wollen?</p>";
+		
+		if (direktVergabe) {
+			//Checkt jetzt nicht, ob der Begünstigte an dem Tag vielleicht schon nen P gemietet hat...
+			inHTML+="<p>Kollegen zur Direktvergabe wählen:</p>"+
+			'<select id="select_direkt"><option value="null">Keine Direktvergabe</option>';
+			var keys = Object.keys(emailToRoleData);
+			for (var i in keys) {
+				var data = emailToRoleData[keys[i]];
+				var email  = keys[i].replace(/!/g,'.');
+				//Um seinen Kollegen auszuwählen, ist die Email-Adresse eher nicht so toll, besser wäre der Name
+				if (data.parkId == 'null') {					
+					inHTML+='<option value="'+data.uid+'">'+email +'</option>';
+				}
+			}
+			inHTML+="</select></p>";
+		}
+			
+			
 		document.getElementById("gpui-ok").innerHTML= "FREIGEBEN";		
 		document.getElementById("gpui-ok").style.display= "inline";		
 		document.getElementById("gpui-cancel").innerHTML="ABBRUCH";
@@ -490,8 +504,15 @@ var config = {
 				console.log("Freigegeben wird Parkplatz "+row + " an Tag "+col + " in Jahr "+jahr+" in KW "+kw);
 				var refString = '/buchungen/'+jahr+'/KW'+kw+'/'+col+"-"+row;
 				console.log("refString: "+refString);
+				var mieter="null";
+				if (direktVergabe) {
+					//muss noch ne prüfung rein, ob der begünstigte nichtt schon nen P hat, 
+					//statt 'null' tragen wir da jetzt den Begünstigten aus dem Select-Element ein.
+					mieter = $("#select_direkt").find(":selected").val() ;
+					//Falls .val != null kann auch ne Email verschickt werden
+				}
 				//Gibt's für .set eigentlich kein .then , sodass ich erfolg/fail unterscheiden und kommunizieren kann?
-				firebase.database().ref(refString).set({vermieter: userId, bezahlt: 'false', erhalten: 'false', mieter: 'null'});
+				firebase.database().ref(refString).set({vermieter: userId, bezahlt: 'false', erhalten: 'false', mieter: mieter});
 				$("#generic-puidialog").puidialog('hide');
 			}
 		document.getElementById("gpui-cancel").onclick = function() {
@@ -694,8 +715,7 @@ var config = {
                     "<td id='blankslot' onclick='onAdminEdit("+p+",2)'></td>" +
                     "<td id='blankslot' onclick='onAdminEdit("+p+",3)'></td>" +
                     "<td id='blankslot' onclick='onAdminEdit("+p+",4)'></td>" +
-                    "<td id='blankslot' onclick='onAdminEdit("+p+",5)'></td></tr>";
-				
+                    "<td id='blankslot' onclick='onAdminEdit("+p+",5)'></td></tr>";				
 				}	
 			} else {
 				//Minimierte Darstellung, nur die Zeilen, in denen ne Buchung steht. (Und die eigene, falls Vermieter)
@@ -749,7 +769,7 @@ var config = {
 				}
 			}
 			
-			//listener von der alten Woche abmelden, an die neue anhängen!	
+			
 
 			var refString = 'buchungen/'+moment(workMoment).format('YYYY')+'/KW'+kalenderWoche+'/';
 			//console.log("Buchungs-Listener umbiegen auf: "+refString);
@@ -759,33 +779,17 @@ var config = {
 		}
 		
         $(document).ready(function(){
-
-			//kalenderWoche = moment().format('ww');
-			
-			
-			//generateTable();
-            //$("#e2rbutton").click(erzeuge_Email2RolleNode);
-			
-			//$("#buchbutton").click(erzeuge_buchungNode);
 			$("#loginButton").click(login);
 			$("#registerButton").click(register);
 			$("#roleButton").click(getRole);
-			$("#funcButton").click(jahre);
 			$("#wocheZurueckButton").click(wocheZurueck);
 			$("#wocheVorButton").click(wocheVor);
 			$("[name=user2RoleView]").hide();
 			$("[name=buchungenView]").hide();
 			$("[name=kalenderView]").hide();
 			$("[name=auswertungView]").hide();
-			
-			
-			
         });
-function jahre() { // blödsinns funktion
-	//$('#default').puigrowl();
-	//addMessage([{severity: 'info', summary: 'Message Title', detail: 'Message Detail here.'}]);			
-	
-}
+
 
 function showKalender() {	
 	$("[name=buchungenView]").hide();
